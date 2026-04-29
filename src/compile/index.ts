@@ -60,7 +60,7 @@ function basicSummary(doc: RawDocument): DocSummary {
 async function llmSummary(doc: RawDocument): Promise<DocSummary> {
   const response = await sendMessage(
     [{ role: "user", content: buildSummarizeUserPrompt(doc) }],
-    { system: SYSTEM_SUMMARIZE, maxTokens: 1000 },
+    { system: SYSTEM_SUMMARIZE, maxTokens: 8192 },
   );
 
   const text = response.content
@@ -157,20 +157,28 @@ export async function compileWiki(): Promise<CompileResult> {
 
   if (changedDocs.length > 0) {
     console.log(`Summarizing ${changedDocs.length} new/changed document(s)...`);
-    for (const doc of changedDocs) {
-      try {
-        const summary = hasApiKey ? await llmSummary(doc) : basicSummary(doc);
-        docSummaries.push({
-          id: doc.id,
-          title: doc.title,
-          summary: summary.summary,
-          category: doc.category,
-          tags: doc.tags,
-          concepts: summary.concepts,
-        });
+
+    const tasks = changedDocs.map(async (doc) => {
+      const summary = hasApiKey ? await llmSummary(doc) : basicSummary(doc);
+      return {
+        id: doc.id,
+        title: doc.title,
+        summary: summary.summary,
+        category: doc.category,
+        tags: doc.tags,
+        concepts: summary.concepts,
+      };
+    });
+
+    const settled = await Promise.allSettled(tasks);
+    for (let i = 0; i < settled.length; i++) {
+      const doc = changedDocs[i];
+      const s = settled[i];
+      if (s.status === "fulfilled") {
+        docSummaries.push(s.value);
         console.log(`  ✓ ${doc.id}`);
-      } catch (err) {
-        const msg = `Failed to summarize ${doc.id}: ${err instanceof Error ? err.message : String(err)}`;
+      } else {
+        const msg = `Failed to summarize ${doc.id}: ${s.reason instanceof Error ? s.reason.message : String(s.reason)}`;
         result.errors.push(msg);
         console.error(`  ✗ ${doc.id}`);
       }
@@ -201,39 +209,46 @@ export async function compileWiki(): Promise<CompileResult> {
 
   if (allConcepts.length > 0 && hasApiKey && shouldGenerateConcepts) {
     console.log(`Generating ${allConcepts.length} concept page(s)...`);
-    for (const concept of allConcepts) {
-      try {
-        const sourceDocs = documents
-          .filter((d) => concept.sourceIds.includes(d.id))
-          .map((d) => `[[${d.id}]]: ${d.title}`);
 
-        const prompt = `Concept: ${concept.name}\nAliases: ${concept.aliases.join(", ")}\nRelevance: ${concept.relevance}\n\nSource documents:\n${sourceDocs.join("\n")}\n\nGenerate a wiki article about this concept based on the source documents.`;
+    const conceptTasks = allConcepts.map(async (concept) => {
+      const sourceDocs = documents
+        .filter((d) => concept.sourceIds.includes(d.id))
+        .map((d) => `[[${d.id}]]: ${d.title}`);
 
-        const response = await sendMessage(
-          [{ role: "user", content: prompt }],
-          { system: SYSTEM_COMPILE_ARTICLE, maxTokens: 2000 },
-        );
+      const prompt = `Concept: ${concept.name}\nAliases: ${concept.aliases.join(", ")}\nRelevance: ${concept.relevance}\n\nSource documents:\n${sourceDocs.join("\n")}\n\nGenerate a wiki article about this concept based on the source documents.`;
 
-        const text = response.content
-          .filter((b) => b.type === "text")
-          .map((b) => b.text)
-          .join("");
+      const response = await sendMessage(
+        [{ role: "user", content: prompt }],
+        { system: SYSTEM_COMPILE_ARTICLE, maxTokens: 2000 },
+      );
 
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const article = JSON.parse(jsonMatch[0]);
-          await writeConceptPage({
-            name: concept.name,
-            markdown: article.markdown,
-            relatedConcepts: article.relatedConcepts ?? [],
-            sourceIds: concept.sourceIds,
-          });
-          console.log(`  ✓ concept: ${concept.name}`);
-        }
-      } catch (err) {
-        const msg = `Failed to generate concept "${concept.name}": ${err instanceof Error ? err.message : String(err)}`;
+      const text = response.content
+        .filter((b) => b.type === "text")
+        .map((b) => b.text)
+        .join("");
+
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const article = JSON.parse(jsonMatch[0]);
+        await writeConceptPage({
+          name: concept.name,
+          markdown: article.markdown,
+          relatedConcepts: article.relatedConcepts ?? [],
+          sourceIds: concept.sourceIds,
+        });
+        return concept.name;
+      }
+      return null;
+    });
+
+    const settledConcepts = await Promise.allSettled(conceptTasks);
+    for (const s of settledConcepts) {
+      if (s.status === "fulfilled" && s.value) {
+        console.log(`  ✓ concept: ${s.value}`);
+      } else if (s.status === "rejected") {
+        const msg = `Failed to generate concept: ${s.reason instanceof Error ? s.reason.message : String(s.reason)}`;
         result.errors.push(msg);
-        console.error(`  ✗ concept: ${concept.name}`);
+        console.error(`  ✗ ${msg}`);
       }
     }
   } else if (allConcepts.length === 0) {

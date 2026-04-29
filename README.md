@@ -27,8 +27,10 @@ npm install
 # 2. 编译 TypeScript
 npm run build
 
-# 3. 配置 API 密钥
-echo "ANTHROPIC_API_KEY=sk-ant-..." > .env
+# 3. 配置环境变量
+cp .env.example .env
+# 编辑 .env，填入你的 API 密钥:
+#   ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxxxxxx
 
 # 4. 放入原始文档（Obsidian Web Clipper 导出的 .md 文件）
 cp ~/my-articles/*.md raw/
@@ -191,12 +193,20 @@ node dist/index.js output chart "topic"
 
 ## 配置
 
-通过 `.env` 文件或环境变量配置：
+复制 `.env.example` 为 `.env` 并根据需要修改：
+
+```bash
+cp .env.example .env
+```
+
+支持的变量：
 
 | 变量 | 说明 | 默认值 |
 |------|------|--------|
-| `ANTHROPIC_API_KEY` | Anthropic API 密钥 | — |
-| `WIKI_DIR` | Wiki 目录路径 | `./wiki` |
+| `ANTHROPIC_API_KEY` | Anthropic API 密钥（必需） | — |
+| `ANTHROPIC_BASE_URL` | 自定义 API 地址（兼容 Anthropic 的第三方服务） | — |
+| `ANTHROPIC_MODEL` | 模型名称 | — |
+| `WIKI_DIR` | Wiki 输出目录 | `./wiki` |
 | `RAW_DIR` | 原始文档目录 | `./raw` |
 | `SEARCH_PORT` | 搜索 Web UI 端口 | `3456` |
 

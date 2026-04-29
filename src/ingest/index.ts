@@ -72,8 +72,6 @@ export async function ingestRawDocs(options: IngestOptions = {}): Promise<Ingest
       const content = await readMdFile(filePath);
       const hash = computeHash(content);
       const id = docId(filePath);
-      console.log(`filePath: ${filePath}...`);
-      console.log(`id: ${id}...`);
       // Skip unchanged files in incremental mode
       if (options.incremental && manifest[id] === hash) continue;
 
