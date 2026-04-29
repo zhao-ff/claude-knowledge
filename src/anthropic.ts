@@ -6,7 +6,10 @@ let client: Anthropic | null = null;
 export function getClient(): Anthropic {
   if (!client) {
     const config = getConfig();
-    client = new Anthropic({ apiKey: config.anthropicApiKey });
+    client = new Anthropic({
+      apiKey: config.anthropicApiKey,
+      baseURL: config.baseURL
+    });
   }
   return client;
 }
@@ -25,7 +28,7 @@ export async function sendMessage(
 ) {
   const c = getClient();
   return c.messages.create({
-    model: "claude-sonnet-4-20250514",
+    model: "deepseek-v4-flash",
     max_tokens: opts.maxTokens ?? 8192,
     system: opts.system,
     thinking: opts.thinking,

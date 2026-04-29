@@ -17,7 +17,7 @@ export async function askQuestion(question: string): Promise<QAResult> {
   const stream = query({
     prompt: `${QA_SYSTEM_PROMPT}\n\nQuestion: ${question}`,
     options: {
-      model: "claude-sonnet-4-20250514",
+      model: "deepseek-v4-flash",
       mcpServers: { "wiki-tools": mcpServer },
       // Block all built-in Claude Code tools — agent only gets our MCP wiki tools
       tools: [],

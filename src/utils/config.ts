@@ -3,6 +3,8 @@ import { join } from "node:path";
 
 export interface Config {
   anthropicApiKey: string;
+  baseURL: string;
+  model: string;
   wikiDir: string;
   rawDir: string;
   searchPort: number;
@@ -34,6 +36,8 @@ export function getConfig(): Config {
 
   cached = {
     anthropicApiKey: env.ANTHROPIC_API_KEY ?? process.env.ANTHROPIC_API_KEY ?? "",
+    baseURL: env.ANTHROPIC_BASE_URL ?? process.env.ANTHROPIC_BASE_URL ?? "",
+    model: env.ANTHROPIC_MODEL ?? process.env.ANTHROPIC_MODEL ?? "",
     wikiDir: env.WIKI_DIR ?? process.env.WIKI_DIR ?? join(process.cwd(), "wiki"),
     rawDir: env.RAW_DIR ?? process.env.RAW_DIR ?? join(process.cwd(), "raw"),
     searchPort: Number(env.SEARCH_PORT ?? process.env.SEARCH_PORT ?? 3456),

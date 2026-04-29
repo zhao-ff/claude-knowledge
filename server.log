@@ -1,0 +1,4 @@
+{"level":30,"time":1777442428516,"pid":151177,"hostname":"DEMOFF","msg":"config>{\"host\":\"122.115.55.3\",\"user\":\"root\",\"password\":\"******\",\"database\":\"nstis_application\",\"port\":32453}"}
+{"level":30,"time":1777442428516,"pid":151177,"hostname":"DEMOFF","msg":"MySQL MCP server running on stdio"}
+{"level":30,"time":1777445803754,"pid":983,"hostname":"DEMOFF","msg":"config>{\"host\":\"122.115.55.3\",\"user\":\"root\",\"password\":\"******\",\"database\":\"nstis_application\",\"port\":32453}"}
+{"level":30,"time":1777445803754,"pid":983,"hostname":"DEMOFF","msg":"MySQL MCP server running on stdio"}

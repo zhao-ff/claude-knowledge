@@ -41,10 +41,15 @@ function computeHash(content: string): string {
 }
 
 function docId(filePath: string): string {
-  return basename(filePath, extname(filePath))
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
+  const name = basename(filePath, extname(filePath));
+  // 将空格和特殊字符替换为 -，但保留中文、字母、数字
+  return name
+    .trim()
+    .replace(/[\s_]+/g, "-")           // 空格和下划线转成 -
+    .replace(/[^\w\u4e00-\u9fa5-]/g, "") // 保留字母、数字、中文、连字符
+    .replace(/-+/g, "-")                // 多个连字符合并成一个
+    .replace(/^-|-$/g, "")              // 去掉首尾的 -
+    .toLowerCase();
 }
 
 export async function ingestRawDocs(options: IngestOptions = {}): Promise<IngestResult> {
@@ -67,7 +72,8 @@ export async function ingestRawDocs(options: IngestOptions = {}): Promise<Ingest
       const content = await readMdFile(filePath);
       const hash = computeHash(content);
       const id = docId(filePath);
-
+      console.log(`filePath: ${filePath}...`);
+      console.log(`id: ${id}...`);
       // Skip unchanged files in incremental mode
       if (options.incremental && manifest[id] === hash) continue;
 

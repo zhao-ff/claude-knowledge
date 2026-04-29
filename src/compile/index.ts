@@ -1,5 +1,6 @@
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { createHash } from "node:crypto";
+import { dirname } from "node:path";
 import { getConfig } from "../utils/config.js";
 import { ingestRawDocs } from "../ingest/index.js";
 import { writeSourcesPage, writeWikiIndexPages, writeConceptPage } from "./article.js";
@@ -39,7 +40,9 @@ function loadManifest(): Manifest {
 }
 
 function saveManifest(m: Manifest): void {
-  writeFileSync(wikiPath(MANIFEST_PATH), JSON.stringify(m, null, 2));
+  const path = wikiPath(MANIFEST_PATH);
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, JSON.stringify(m, null, 2));
 }
 
 function docHash(content: string): string {
