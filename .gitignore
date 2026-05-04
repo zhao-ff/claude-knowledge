@@ -3,5 +3,8 @@ dist/
 coverage/
 .env
 *.local
-wiki/
+wiki/*
+!wiki/.obsidian/*
 raw/
+plugins/
+docs/

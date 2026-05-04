@@ -3,6 +3,7 @@ import { compileWiki } from "../compile/index.js";
 import { searchCli } from "../search/cli.js";
 import { createSearchServer } from "../search/server.js";
 import { askQuestion } from "../qa/index.js";
+import { createQueryServer } from "../qa/server.js";
 import { getConfig } from "../utils/config.js";
 
 export function createCli(): Command {
@@ -53,6 +54,14 @@ export function createCli(): Command {
     .option("-p, --port <port>", "port number", String(getConfig().searchPort))
     .action((opts: { port?: string }) => {
       createSearchServer(Number(opts.port));
+    });
+
+  program
+    .command("query-server")
+    .description("Start the query HTTP API server")
+    .option("-p, --port <port>", "port number", "3457")
+    .action((opts: { port?: string }) => {
+      createQueryServer(Number(opts.port));
     });
 
   program
