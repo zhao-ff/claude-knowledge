@@ -8,3 +8,5 @@ wiki/*
 raw/
 plugins/
 docs/
+.vscode/
+.claude/
