@@ -86,8 +86,9 @@ Options:
   return { input, opts };
 }
 
-function buildArgs(chunkPath: string, pageRange: string, opts: Options): string[] {
-  const args = ["flash-extract", chunkPath, "--pages", pageRange, "-o", chunkPath.replace(/\.pdf$/i, ".md")];
+function buildArgs(chunkPath: string, pageRange: string, opts: Options, outputPath?: string): string[] {
+  const out = outputPath || chunkPath.replace(/\.pdf$/i, ".md");
+  const args = ["flash-extract", chunkPath, "--pages", pageRange, "-o", out];
   if (opts.lang) args.push("--language", opts.lang);
   if (opts.ocr) args.push("--ocr");
   if (opts.formula === false) args.push("--formula=false");
