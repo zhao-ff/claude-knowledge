@@ -18,6 +18,8 @@ import json
 import time
 import argparse
 
+DEFAULT_OUTPUT_DIR = "resources/py-md"
+
 
 def filter_by_time(statuses, days):
     start_ts = int((datetime.now() - timedelta(days=days)).timestamp() * 1000)
@@ -259,7 +261,8 @@ if __name__ == "__main__":
         time.sleep(1.0)
 
     # 3. 保存
-    output = args.output or f"followers_feed_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    output = args.output or os.path.join(DEFAULT_OUTPUT_DIR, f"followers_feed_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
+    os.makedirs(os.path.dirname(output) or '.', exist_ok=True)
     if args.format == 'md':
         output_path = output + '.md'
         write_markdown(results, output_path)

@@ -23,6 +23,8 @@ import re
 import argparse
 from datetime import datetime
 
+DEFAULT_OUTPUT_DIR = "resources/py-md"
+
 API_BASE = "https://api.xueqiu.com"
 
 COOKIES = {
@@ -229,7 +231,8 @@ if __name__ == "__main__":
     print_table(posts)
 
     # 保存
-    output = args.output or f"hot_posts_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    output = args.output or os.path.join(DEFAULT_OUTPUT_DIR, f"hot_posts_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
+    os.makedirs(os.path.dirname(output) or '.', exist_ok=True)
     if args.format == 'json':
         path = output + '.json'
         with open(path, 'w', encoding='utf-8') as f:
